@@ -16,8 +16,8 @@ rule gen_transcriptome_names:
     input:
         transcriptomes = transcriptomes
     output:
-        queries_file = os.path.join(config["outputdir"], "fastani_setup", "fastani_queries.txt"),
-        references_file = os.path.join(config["outputdir"], "fastani_setup", "fastani_references.txt")
+        queries_file = os.path.join(config["outputdir"], "01-fastani_setup", "fastani_queries.txt"),
+        references_file = os.path.join(config["outputdir"], "01-fastani_setup", "fastani_references.txt")
     params:
         transcriptomes = "\n".join(transcriptomes)
     shell:
@@ -30,10 +30,10 @@ rule gen_transcriptome_names:
         
 rule fastani:
     input:
-        queries_file = os.path.join(config["outputdir"], "fastani_setup", "fastani_queries.txt"),
-        references_file = os.path.join(config["outputdir"], "fastani_setup", "fastani_references.txt")
+        queries_file = os.path.join(config["outputdir"], "01-fastani_setup", "fastani_queries.txt"),
+        references_file = os.path.join(config["outputdir"], "01-fastani_setup", "fastani_references.txt")
     output:
-        tsv_file = os.path.join(config["outputdir"], "fastani", "fastani_comparison.tsv")
+        tsv_file = os.path.join(config["outputdir"], "02-fastani", "fastani_comparison.tsv")
     params:
         transcriptomes = " ".join(transcriptomes)
     conda:

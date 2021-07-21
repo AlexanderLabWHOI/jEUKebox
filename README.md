@@ -31,6 +31,8 @@ There is a default csv file included in the `files` directory of the repository,
 - NumberOrganisms - the number of _distinct_ organisms to be included in each community, from the nucleotide and protein files as specified in the configuration.
 - ProportionCommunity - a list specifying the proportion of contigs within its community that each organism should represent in the simulated assembly.
 - NumberHighSimilarity - a number (less than total NumberOrganisms for each community row) of the organisms within the community that should have high ANI similarity. The most similar organisms per ANI similarity will be chosen first. 
-- GroupsHighSimilarity - the number of _groups_ with high similarity that are expected to be found. This allows for the case in which you wish to have multiple high-similarity groups within your data, but want those two groups to be relatively unrelated to one another.
+- GroupsHighSimilarity - the number of _groups_ with high similarity that are expected to be found. This allows for the case in which you wish to have multiple high-similarity groups within your data, but want those two groups to be relatively unrelated to one another. The NumberHighSimilarity value should be divisible by the GroupsHighSimilarity value, else the total number of organism in the community will be reduced to accommodate even divisibility into the group size.
+
+#TODO - create a mode where users can just explicitly specify the output community file, such that the intermediate step is bypassed
 
 **Note**: if there is no preference for either or both of _NumberHighSimilarity_ or _GroupsHighSimilarity_, they can be set to -1 and will be ignored.
