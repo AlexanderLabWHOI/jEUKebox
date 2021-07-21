@@ -9,6 +9,18 @@ However, metatranscriptomes (among other tools) are increasingly being applied t
 
 For this reason, we have developed this companion tool to the `eukrhythmic` microbial eukaryote metatranscriptome analysis pipeline!
 
+![the jEUKebox pipeline](files/jEUKebox-pipeline.png)
+
+## The configuration file
+
+The configuration file allows the user to customize the pipeline to suit the particular collection of organisms of interest and their abundance in the communities.
+
+- transcriptome_selections: files can be specified individually in list form; if this field is included in the configuration file, "protein_files" should have the same length.
+- protein_selections: analogous protein files for the transcriptomes in the first configuration file field. Alternatively, both of these fields can be circumvented by providing a directory.
+- community_spec: a CSV file containing important specification information for each of the generated communities. See the section below for more detailed information on how to set up this file.
+- outputdir: the base directory where the output of the processing pipeline should be stored. 
+
+
 ## The `community_spec` file in the configuration
 
 This file is the way to control the desired community composition of the generated _assemblies_. Note that this does not control the raw reads that might come from each of the contigs (its representation in the sample), which is done based on an exponential distribution for the various _transcripts_ which were simulated as having been sequenced, weighted by the abundance of each organism. 

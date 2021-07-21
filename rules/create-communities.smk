@@ -21,7 +21,7 @@ rule create_communities:
     input:
         tsv_file = os.path.join(config["outputdir"], "fastani", "fastani_comparison.tsv")
     output:
-        communities_file = os.path.join(config["outputdir"], "communities.csv")
+        communities_file = os.path.join(config["outputdir"], "03-community_spec", "communities.csv")
     params:
         transcriptomes = transcriptomes,
         comm_df_loc = config["community_spec"]
@@ -32,13 +32,30 @@ rule create_communities:
         unrelated = list(set(params.transcriptomes) - set(ani_file.file1) - set(ani_file.file2))
         sorted_by_ani = ani_file.sort_values(by = "ani")
         communities = pd.read_csv(params.comm_df_loc)
-        output_file = pd.DataFrame(columns = ["Community", "Organism", "Proportion"])
+        output_file = pd.DataFrame(columns = ["Community", "Organism", "Proportion", "Related?"])
         for community_ind in range(len(communities.index)):
             number_orgs = int(list(communities.NumberOrganisms)[community_ind])
             number_highsim = list(communities.NumberHighSimilarity)[community_ind]
+            groups_highsim = list(communities.GroupsHighSimilarity)[community_ind]
             community_curr = list(communities.Communities)[community_ind]
             organisms = []
             proportions = []
+           
+            if number_highsim > 0:
+                number_orgs = number_orgs - number_highsim
+                while groups_highsim > 0:
+                    top_related = []
+                    ani_rows = 0
+                    while (ani_rows < len(ani_file.index)) & (len(top_related) < 4):
+                        candidate_1 = list(ani_file.file1)[ani_rows]
+                        candidate_2 = list(ani_file.file2)[ani_rows]
+                        if (len(top_related) == 0) | (candidate_1 in top_related) | (candidate_2 in top_related):
+                            top_related.extend([candidate_1,candidate_2])
+                            top_related = list(set(top_related))
+                        ani_rows+=1
+
+                    groups_highsim-=1
+
             if community_curr != 6:
                 number_orgs = number_orgs - number_highsim
             else:
