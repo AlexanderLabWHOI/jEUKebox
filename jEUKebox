@@ -43,6 +43,8 @@ mmetsp_ids = [curr.split("/")[-1] for curr in transcriptomes]
 mmetsp_ids_prot = [curr.split("/")[-1] for curr in protein_files]
 communities = list(config["community_configs"])
 
+include: os.path.join("rules", "fastani.smk")
+
 rule all:
     input:
         fastani_output = os.path.join(config["outputdir"], "fastani", "fastani_comparison.tsv"),
@@ -52,47 +54,6 @@ rule all:
         assembly_output = expand(os.path.join(config["outputdir"], "mock_assemblies",
                                                  "mock_assembly_{comm}",
                                                  "mock_assembly_{comm}.fasta"), comm = communities)
- 
-rule placeholder:
-    output:
-        "placeholder.txt"
-    conda:
-        os.path.join("envs","workflow-env.yaml")
-    shell:
-        '''
-        touch {output}
-        '''
-        
-rule gen_transcriptome_names:
-    input:
-        transcriptomes = transcriptomes
-    output:
-        queries_file = os.path.join(config["outputdir"], "fastani_setup", "fastani_queries.txt"),
-        references_file = os.path.join(config["outputdir"], "fastani_setup", "fastani_references.txt")
-    params:
-        transcriptomes = "\n".join(transcriptomes)
-    shell:
-        '''
-        for transcriptome in {input.transcriptomes}; do
-            echo -e $transcriptome >> {output.queries_file}
-            echo -e $transcriptome >> {output.references_file}
-        done
-        '''
-        
-rule fastani:
-    input:
-        queries_file = os.path.join(config["outputdir"], "fastani_setup", "fastani_queries.txt"),
-        references_file = os.path.join(config["outputdir"], "fastani_setup", "fastani_references.txt")
-    output:
-        tsv_file = os.path.join(config["outputdir"], "fastani", "fastani_comparison.tsv")
-    params:
-        transcriptomes = " ".join(transcriptomes)
-    conda:
-        os.path.join("envs","workflow-env.yaml")
-    shell:
-        '''
-        fastANI --ql {input.queries_file} --rl {input.references_file} -o {output.tsv_file}
-        '''
 
 rule create_communities:
     input:

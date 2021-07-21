@@ -22,6 +22,7 @@ protein_files:
     - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0147_clean.pep.fa
     - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0027_clean.pep.fa
     - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0448_clean.pep.fa
+community_spec: files/default_communities.csv
 outputdir: ../mmetsp_metatranscriptomes
 community_configs:
     - 1
