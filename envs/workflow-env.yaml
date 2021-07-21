@@ -1,0 +1,6 @@
+name: workflow
+channels:
+    - bioconda
+dependencies:
+    - fastani
+    - orthofinder

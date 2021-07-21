@@ -1,0 +1,8 @@
+name: renv
+channels:
+    - bioconda
+    - r
+    - conda-forge
+dependencies:
+    - bioconductor-rsubread
+    - r-biocmanager
