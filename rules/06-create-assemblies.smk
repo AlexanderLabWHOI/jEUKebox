@@ -46,10 +46,11 @@ rule create_assemblies:
                                      "{comm}.pickle")
     params:
         directory_prot = os.path.join(config["outputdir"], "04-communities", "prot", "{comm}"),
-        community_dir = os.path.join(config["outputdir"], "04-communities", "nucl", "{comm}")
+        community_dir = os.path.join(config["outputdir"], "04-communities", "nucl", "{comm}"),
+        outdir = config["outputdir"]
     run:
         community_spec = pd.read_csv(input.communities_file)
-        files_inassembly = os.listdir(params.community_dir)
+        files_inassembly = [curr.split(".")[0] for curr in os.listdir(params.community_dir)]
         community_spec = community_spec[community_spec.File_Inds.isin(files_inassembly)] 
         
         # We need a way to translate between the peptide IDs in the OrthoFinder output 
@@ -73,6 +74,8 @@ rule create_assemblies:
         os.makedirs(os.path.dirname(output.pickled_dict), exist_ok=True)
         with open(output.pickled_dict,'wb') as outfile:
             pickle.dump(peptide_dict,outfile)
+        logfile = open(os.path.join(params.outdir, "04-communities", "community_id_dicts", "logfile.txt"),'w')
+        logfile.write("starting...\n")
                                             
         # we want to use the OrthoFinder output to ensure that each assembly contains contigs from
         # OG spanned by ALL species in assembly.
@@ -90,7 +93,8 @@ rule create_assemblies:
         selected_OGs = [single_copy_OGs[curr] for curr in indices_OGs]
         selected_peps = []
         [selected_peps.extend(list(orthogroups.loc[[curr in selected_OGs for curr in orthogroups.Orthogroup],:].\
-                                   drop("Orthogroup",axis=1).loc[ind])) for ind in len(selected_OGs)]
+                                   drop("Orthogroup",axis=1).reset_index(drop=True).loc[ind])) for ind \
+                              in range(len(selected_OGs))]
         selected_peps = [tester for tester in selected_peps if str(tester) != 'nan']
         selected_nucls = [from_pep_dict[curr_pep] for curr_pep in selected_peps]
         
@@ -110,16 +114,21 @@ rule create_assemblies:
             related_check = list(community_spec["Related?"])[row_ind]
             
             # orthogroups that contain this organism as well as others (regardless of how many)
-            shared_ogs = orthogroups.loc[(~pd.isna(orthogroups[org_id])) & \
-                                         (~pd.isna(orthogroups.drop(["Orthogroup",org_id]))).any(axis=1),:]
+            shared_ogs = orthogroups.loc[(~pd.isna(orthogroups[org_id + ".pep"])) & \
+                                         (~pd.isna(orthogroups.drop(["Orthogroup",org_id + ".pep"],\
+                                                                     axis=1))).any(axis=1),:]
             shared_og_campeps = []
-            [shared_og_campeps.extend(curr) for curr in list(shared_ogs[org_id]) if str(curr) != "nan"]
+            [shared_og_campeps.extend(curr.split(",")) for curr in \
+                     list(shared_ogs[org_id + ".pep"]) if str(curr) != "nan"]
             
             # orthogroups that contain this organism as well as others
-            not_shared_ogs = orthogroups.loc[(~pd.isna(orthogroups[org_id])) & \
-                                          pd.isna(orthogroups.drop(["Orthogroup",org_id])).all(axis=1),:]
+            not_shared_ogs = orthogroups.loc[(~pd.isna(orthogroups[org_id + ".pep"])) & \
+                                          pd.isna(orthogroups.drop(["Orthogroup",org_id + ".pep"],\
+                                                                   axis=1)).all(axis=1),:]
             not_shared_og_campeps = []
-            [not_shared_og_campeps.extend(curr) for curr in list(not_shared_ogs[org_id]) if str(curr) != "nan"]
+            [not_shared_og_campeps.extend(curr.split(",")) for curr in \
+                     list(not_shared_ogs[org_id + ".pep"]) if (str(curr) != "nan") & \
+                     (str(curr.split(",")) not in shared_og_campeps)]
                 
             # the total number of contigs in the transcriptome assembly for this organism
             total_items = len(record_list) 
@@ -135,19 +144,32 @@ rule create_assemblies:
                 # the number of contigs we wish to include from species-specific OGs
                 not_shared_num = int(total_items * 0.25)
             
-            random_num_shared = np.random.choice(list(range(0,total_items)), size=shared_num, replace=False)
-            random_num_not_shared = np.random.choice(list(set(list(range(0,total_items))).difference(set(random_num_shared))),\
-                                                  size=not_shared_num, replace=False)
+            total_shared = len(shared_og_campeps)
+            total_not_shared = len(not_shared_og_campeps)
+            if total_shared >= shared_num:
+                shared_num = total_shared - 1
+            if total_not_shared >= not_shared_num:
+                not_shared_num = total_not_shared - 1
+            
+            random_num_shared = np.random.choice(list(range(0,total_shared)), size=shared_num, replace=False)
+            random_num_not_shared = np.random.choice(list(range(0,total_not_shared)), size=not_shared_num, replace=False)
+            #random_num_not_shared = np.random.choice(list(set(list(range(0,total_not_shared))).\
+            #                                              difference(set(random_num_shared))),\
+            #                                      size=not_shared_num, replace=False)
             selected_nucls.extend([from_pep_dict[shared_og_campeps[random_num_curr]] for \
                                   random_num_curr in random_num_shared])
             selected_nucls.extend([from_pep_dict[not_shared_og_campeps[random_num_curr]] for \
                                   random_num_curr in random_num_not_shared])
             
             selected_nucls = list(set(selected_nucls))
-            to_write.extend([curr for curr in record_list if curr.id in selected_nucls])
+            logfile.write(org_id + "\n")
+            logfile.write(selected_nucls[1:3])
+            to_write.extend([curr for curr in record_list if any([nucl_sel in str(curr.id) for nucl_sel in selected_nucls])])
             concordance.append(pd.DataFrame({"Contig":[to_write_curr.id for to_write_curr in to_write],
-                                             "Organism":[org_id]*len(to_write)}),ignore_index=True)
+                                             "Organism":[org_id]*len(to_write),
+                                             "Proportion": [percentage]*len(to_write)}),ignore_index=True)
         
+        logfile.close()
         os.makedirs(os.path.dirname(output.mock_assembly), exist_ok=True)    
         with open(output.mock_assembly, 'w') as handle:
             SeqIO.write(to_write, handle, 'fasta')
