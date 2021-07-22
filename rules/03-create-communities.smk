@@ -12,6 +12,7 @@ import random
 import math
 from Bio import SeqIO
 import datetime
+import ast
 from snakemake.exceptions import print_exception, WorkflowError  
 
 mydate = datetime.datetime.now()
@@ -62,7 +63,8 @@ rule create_communities:
                    
                     groups_highsim-=1
                     organisms.extend(top_related)
-                    high_relation.extend([1]*len(top_related))
+                    
+            high_relation.extend([1]*len(organisms))
                 
             number_orgs-=len(organisms)
             high_relation.extend([0]*number_orgs)
@@ -71,7 +73,9 @@ rule create_communities:
             else:
                 organisms.extend(np.random.choice(unrelated, number_orgs, replace=True))
             
-            proportions.extend(list(communities.ProportionCommunity[community_ind]))
+            prop_list = ast.literal_eval(communities.ProportionCommunity[community_ind])
+            #prop_list = [n.strip() for n in prop_list]
+            proportions.extend(prop_list)
             mmetsp_inds = [curr.split("/")[-1].split(".")[0] for curr in organisms]
             output_file = output_file.append(pd.DataFrame({"Community": community_curr,
                                              "Organism": organisms,
