@@ -33,7 +33,7 @@ rule create_communities:
         unrelated = list(set(params.transcriptomes) - set(ani_file.file1) - set(ani_file.file2))
         ani_file = ani_file.sort_values(by = "ani")
         communities = pd.read_csv(params.comm_df_loc)
-        output_file = pd.DataFrame(columns = ["Community", "Organism", "Proportion", "Related?"])
+        output_file = pd.DataFrame(columns = ["Community", "Organism", "Proportion", "File_Inds", "Related?"])
         for community_ind in range(len(communities.index)):
             number_orgs = int(list(communities.NumberOrganisms)[community_ind])
             number_highsim = list(communities.NumberHighSimilarity)[community_ind]
@@ -72,10 +72,10 @@ rule create_communities:
                 organisms.extend(np.random.choice(unrelated, number_orgs, replace=True))
             
             proportions.extend(list(communities.ProportionCommunity[community_ind]))
-            mmetsp_inds = [curr.split("/")[-1] for curr in organisms]
+            mmetsp_inds = [curr.split("/")[-1].split(".")[0] for curr in organisms]
             output_file = output_file.append(pd.DataFrame({"Community": community_curr,
                                              "Organism": organisms,
-                                             "MMETSP_inds": mmetsp_inds,
+                                             "File_Inds": mmetsp_inds,
                                              "Proportion": proportions,
                                              "Related?": high_relation}))
             

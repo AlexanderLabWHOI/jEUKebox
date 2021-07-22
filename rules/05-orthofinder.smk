@@ -30,7 +30,12 @@ rule orthofinder:
         orthfinder_OGs = os.path.join(config["outputdir"], "05-orthofinder",
                                       "orthofinder_{comm}",
                                       "Results_" + str(datestring),
-                                      "Orthogroups","Orthogroups.tsv")
+                                      "Orthogroups","Orthogroups.tsv"),
+        orthfinder_SCGs = os.path.join(config["outputdir"], "05-orthofinder",
+                                      "orthofinder_{comm}",
+                                      "Results_" + str(datestring),
+                                      "Orthogroups", "Orthogroups_SingleCopyOrthologues.txt")
+      
     params:
         outfold = os.path.join(config["outputdir"], "orthofinder", "orthofinder_{comm}"),
         outfolder = config["outputdir"],
