@@ -146,9 +146,9 @@ rule create_assemblies:
             
             total_shared = len(shared_og_campeps)
             total_not_shared = len(not_shared_og_campeps)
-            if total_shared >= shared_num:
+            if total_shared <= shared_num:
                 shared_num = total_shared - 1
-            if total_not_shared >= not_shared_num:
+            if total_not_shared <= not_shared_num:
                 not_shared_num = total_not_shared - 1
             
             random_num_shared = np.random.choice(list(range(0,total_shared)), size=shared_num, replace=False)
@@ -156,14 +156,12 @@ rule create_assemblies:
             #random_num_not_shared = np.random.choice(list(set(list(range(0,total_not_shared))).\
             #                                              difference(set(random_num_shared))),\
             #                                      size=not_shared_num, replace=False)
-            selected_nucls.extend([from_pep_dict[shared_og_campeps[random_num_curr]] for \
+            selected_nucls.extend([from_pep_dict[shared_og_campeps[random_num_curr].strip()] for \
                                   random_num_curr in random_num_shared])
-            selected_nucls.extend([from_pep_dict[not_shared_og_campeps[random_num_curr]] for \
+            selected_nucls.extend([from_pep_dict[not_shared_og_campeps[random_num_curr].strip()] for \
                                   random_num_curr in random_num_not_shared])
             
             selected_nucls = list(set(selected_nucls))
-            logfile.write(org_id + "\n")
-            logfile.write(selected_nucls[1:3])
             to_write.extend([curr for curr in record_list if any([nucl_sel in str(curr.id) for nucl_sel in selected_nucls])])
             concordance.append(pd.DataFrame({"Contig":[to_write_curr.id for to_write_curr in to_write],
                                              "Organism":[org_id]*len(to_write),
