@@ -21,7 +21,7 @@ rule create_assemblies:
         community_files_prot = os.path.join(config["outputdir"], "04-communities",
                                             "prot", "{comm}_complete.csv"),
         community_files_nucl = os.path.join(config["outputdir"], "04-communities",
-                                            "nucl", "{comm}_complete.csv")
+                                            "nucl", "{comm}_complete.csv"),
         communities_file = os.path.join(config["outputdir"], "03-community_spec",
                                         "communities.csv"),
         orthfinder_genct = os.path.join(config["outputdir"], "05-orthofinder", 
@@ -87,6 +87,7 @@ rule create_assemblies:
         [selected_peps.extend(list(orthogroups.loc[[curr in selected_OGs for curr in orthogroups.Orthogroup],:].\
                                    drop("Orthogroup",axis=1).loc[ind])) for ind in len(selected_OGs)]
         selected_peps = [tester for tester in selected_peps if str(tester) != 'nan']
+        selected_nucls = [from_pep_dict[curr_pep] for curr_pep in selected_peps]
         
         # for each member of the community we need to do something different
         for row_ind in range(len(community_spec.index)):
@@ -103,10 +104,14 @@ rule create_assemblies:
             # orthogroups that contain this organism as well as others (regardless of how many)
             shared_ogs = orthogroups.loc[(~pd.isna(orthogroups[org_id])) & \
                                          (~pd.isna(orthogroups.drop(["Orthogroup",org_id]))).any(axis=1),:]
+            shared_og_campeps = []
+            [shared_og_campeps.extend(curr) for curr in list(shared_ogs[org_id]) if str(curr) != "nan"]
             
             # orthogroups that contain this organism as well as others
             not_shared_ogs = orthogroups.loc[(~pd.isna(orthogroups[org_id])) & \
                                           pd.isna(orthogroups.drop(["Orthogroup",org_id])).all(axis=1),:]
+            not_shared_og_campeps = []
+            [not_shared_og_campeps.extend(curr) for curr in list(not_shared_ogs[org_id]) if str(curr) != "nan"]
                 
             # the total number of contigs in the transcriptome assembly for this organism
             total_items = len(record_list) 
@@ -122,9 +127,16 @@ rule create_assemblies:
                 # the number of contigs we wish to include from species-specific OGs
                 not_shared_num = int(total_items * 0.25)
             
-            random_num = list(np.random.randint(0, high=total_items, size=int(total_items * percentage)))
-            random_num = random.choice(list(range(0,total_items)), size=int(total_items * percentage), replace=False)
-            to_write.extend([record_list[random_num_curr] for random_num_curr in random_num])
+            random_num_shared = random.choice(list(range(0,total_items)), size=shared_num, replace=False)
+            random_num_not_shared = random.choice(list(set(list(range(0,total_items))).difference(set(random_num_shared))),\
+                                                  size=not_shared_num, replace=False)
+            selected_nucls.extend([from_pep_dict[shared_og_campeps[random_num_curr]] for \
+                                  random_num_curr in random_num_shared])
+            selected_nucls.extend([from_pep_dict[not_shared_og_campeps[random_num_curr]] for \
+                                  random_num_curr in random_num_not_shared])
+            
+            selected_nucls = list(set(selected_nucls))
+            to_write.extend([curr for curr in record_list if curr.id in selected_nucls])
             
         with open(output.mock_assembly, 'w') as handle:
             SeqIO.write(to_write, handle, 'fasta')

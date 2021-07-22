@@ -10,7 +10,11 @@ import numpy as np
 import pathlib
 import random
 from Bio import SeqIO
+import datetime
 from snakemake.exceptions import print_exception, WorkflowError  
+
+mydate = datetime.datetime.now()
+datestring = mydate.strftime("%b%d")
 
 # Major steps in workflow:
 # 1. compute fastANI similarity between transcriptomes provided to pipeline
@@ -43,151 +47,24 @@ mmetsp_ids = [curr.split("/")[-1] for curr in transcriptomes]
 mmetsp_ids_prot = [curr.split("/")[-1] for curr in protein_files]
 communities = list(config["community_configs"])
 
-include: os.path.join("rules", "fastani.smk")
+include: os.path.join("rules", "02-fastani.smk")
+include: os.path.join("rules", "03-create-communities.smk")
+include: os.path.join("rules", "04-organize_communities.smk")
+include: os.path.join("rules", "05-orthofinder.smk")
+include: os.path.join("rules", "06-create-assemblies.smk")
 
 rule all:
     input:
-        fastani_output = os.path.join(config["outputdir"], "fastani", "fastani_comparison.tsv"),
-        orthofinder_output = expand(os.path.join(config["outputdir"], "orthofinder",
-                                                 "orthofinder_{comm}",
-                                                 "orthofinder_done.txt"), comm = communities),
-        assembly_output = expand(os.path.join(config["outputdir"], "mock_assemblies",
-                                                 "mock_assembly_{comm}",
-                                                 "mock_assembly_{comm}.fasta"), comm = communities)
-
-rule create_communities:
-    input:
-        tsv_file = os.path.join(config["outputdir"], "fastani", "fastani_comparison.tsv")
-    output:
-        communities_file = os.path.join(config["outputdir"], "communities.csv")
-    params:
-        transcriptomes = transcriptomes
-    run:
-        ani_file = pd.read_csv(input.tsv_file,sep="\t",header=None,names=["file1","file2","ani","XX","XXX"])
-        ani_file = ani_file[ani_file.file1 != ani_file.file2]
-        unrelated = list(set(params.transcriptomes) - set(ani_file.file1) - set(ani_file.file2))
-        sorted_by_ani = ani_file.sort_values(by = "ani")
-        communities = pd.DataFrame({"Communities": [1,2,3,4,5,6],
-                                    "NumberOrganisms": [4,5,8,10,7,12],
-                                    "ProportionCommunity": [[0.70,0.10,0.10,0.10],
-                                                            [0.40,0.35,0.10,0.10,0.05],
-                                                            [0.20,0.15,0.15,0.20,0.10,0.10,0.05,0.05],
-                                                            [0.10] * 10,
-                                                            [0.2,0.25,0.15,0.2,0.1,0.05,0.05],
-                                                            [0.03,0.05,0.05,0.08,0.12,0.07,
-                                                             0.13,0.05,0.10,0.08,0.12,0.12]],
-                                    "NumberHighSimilarity": [0,2,4,0,4,4]})
-        output_file = pd.DataFrame(columns = ["Community", "Organism", "Proportion"])
-        for community_ind in range(len(communities.index)):
-            number_orgs = int(list(communities.NumberOrganisms)[community_ind])
-            number_highsim = list(communities.NumberHighSimilarity)[community_ind]
-            community_curr = list(communities.Communities)[community_ind]
-            organisms = []
-            proportions = []
-            # in community 6 we truly take anything.
-            if community_curr != 6:
-                number_orgs = number_orgs - number_highsim
-            else:
-                unrelated = list(set(params.transcriptomes))
-            if number_highsim == 2:
-                organisms.extend(list(ani_file.loc[:,["file1","file2"]].iloc[0]))
-                # number_highsim-=2
-                # number_orgs-=2
-            elif (number_highsim == 4) & (community_curr == 3):
-                # this is the community where we want all 4 to be related to _each other_
-                top_related = []
-                ani_rows = 0
-                while (ani_rows < len(ani_file.index)) & (len(top_related) < 4):
-                    candidate_1 = list(ani_file.file1)[ani_rows]
-                    candidate_2 = list(ani_file.file2)[ani_rows]
-                    if (len(top_related) == 0) | (candidate_1 in top_related) | (candidate_2 in top_related):
-                        top_related.extend([candidate_1,candidate_2])
-                        top_related = list(set(top_related))
-                    ani_rows+=1
-                        
-                 
-                organisms.extend(top_related)
-            elif (number_highsim == 4) & (community_curr == 5):
-                # this is the community where we want all 4 to be related, but not to each other
-                top_related = []
-                ani_rows = 0
-                while (ani_rows < len(ani_file.index)) & (len(top_related) < 4):
-                    candidate_1 = list(ani_file.file1)[ani_rows]
-                    candidate_2 = list(ani_file.file2)[ani_rows]
-                    if (len(top_related) == 0) | ((candidate_1 not in top_related) & (candidate_2 not in top_related)):
-                        top_related.extend([candidate_1,candidate_2])
-                        top_related = list(set(top_related))
-                        
-                    ani_rows+=1
-                        
-                organisms.extend(top_related)
-                
-            if number_orgs <= len(unrelated):
-                organisms.extend(np.random.choice(unrelated, number_orgs, replace=False))
-            else:
-                organisms.extend(np.random.choice(unrelated, number_orgs, replace=True))
-            
-            proportions.extend(list(communities.ProportionCommunity[community_ind]))
-            mmetsp_inds = [curr.split("/")[-1] for curr in organisms]
-            output_file = output_file.append(pd.DataFrame({"Community": community_curr,
-                                             "Organism": organisms,
-                                             "MMETSP_inds": mmetsp_inds,
-                                             "Proportion": proportions}))
-            
-        output_file.to_csv(output.communities_file)
-
-
-rule organize_folders:
-    input:
-        communities_file = os.path.join(config["outputdir"], "communities.csv")
-    output:
-        community_files_prot = os.path.join(config["outputdir"], "community_{comm}_prot", "{comm}_complete.csv"),
-        community_files = os.path.join(config["outputdir"], "community_{comm}", "{comm}_complete.csv")
-    params:
-        community = "{comm}",
-        directory_prot = os.path.join(config["outputdir"], "community_{comm}_prot"),
-        directory_nucl = os.path.join(config["outputdir"], "community_{comm}")
-    run:
-        community_spec = pd.read_csv(input.communities_file)
-        community_spec = community_spec[community_spec.Community == int(params.community)]
-        os.system("mkdir -p " + str(params.directory_prot)) 
-        os.system("mkdir -p " + str(params.directory_nucl))
-        for com_ind in range(len(community_spec.index)):
-            protein_file = protein_files[np.where([(curr == str(list(community_spec.Organism)[com_ind])) for curr in transcriptomes])[0][0]]
-            nucl_file = list(community_spec.Organism)[com_ind]
-            protein_ind = nucl_file.split("/")[-1].split(".")[0]
-            os.system("cp " + str(protein_file) + " " + os.path.join(params.directory_prot, str(protein_ind) + ".pep.fa"))
-            os.system("cp " + str(nucl_file) + " " + os.path.join(params.directory_nucl, str(protein_ind) + ".fasta"))
-            
-        if len(community_spec.index) > 0:
-            os.system("touch " + str(output.community_files_prot))
-            os.system("touch " + str(output.community_files))
-    
-rule orthofinder:
-    input:
-        community_files_prot = os.path.join(config["outputdir"], "community_{comm}_prot", "{comm}_complete.csv"),
-        community_files = os.path.join(config["outputdir"], "community_{comm}", "{comm}_complete.csv")
-    output:
-        outputfile = os.path.join(config["outputdir"], "orthofinder",
-                                                 "orthofinder_{comm}",
-                                                 "orthofinder_done.txt"),
-        orthfinder_genct = os.path.join(config["outputdir"],"orthofinder","orthofinder_{comm}",
-                                        "Results_Jul17","Orthogroups","Orthogroups.GeneCount.tsv"),
-        orthfinder_OGs = os.path.join(config["outputdir"],"orthofinder","orthofinder_{comm}",
-                                        "Results_Jul17","Orthogroups","Orthogroups.tsv")
-    params:
-        outfold = os.path.join(config["outputdir"],"orthofinder","orthofinder_{comm}"),
-        outfolder = config["outputdir"],
-        folder = os.path.join(config["outputdir"],"community_{comm}_prot")
-    conda:
-        os.path.join("envs","workflow-env.yaml")
-    shell:
-        '''
-        rm -rf {params.outfold}
-        orthofinder -t 108 -o {params.outfold} -f {params.folder}
-        touch {output.outputfile}
-        '''
-
+        communities_file = os.path.join(config["outputdir"], "03-community_spec", "communities.csv"),
+        orthofinder_output = expand(os.path.join(config["outputdir"], "05-orthofinder",
+                                      "orthofinder_{comm}",
+                                      "Results_" + str(datestring),
+                                      "Orthogroups", "Orthogroups_SingleCopyOrthologues.txt"),
+                                      comm = communities),
+        assembly_output = expand(os.path.join(config["outputdir"],
+                                              "06-designer_assemblies",
+                                              "designer_assembly_{comm}.fasta"),
+                                              comm = communities)
         
 rule rsubreads:
     output:
