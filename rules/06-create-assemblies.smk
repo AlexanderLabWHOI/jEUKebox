@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 import pathlib
 import random
+import pickle
 from Bio import SeqIO
 import datetime
 from snakemake.exceptions import print_exception, WorkflowError  
@@ -40,7 +41,7 @@ rule create_assemblies:
         mock_assembly = os.path.join(config["outputdir"], "06-designer_assemblies",
                                      "designer_assembly_{comm}.fasta"),
         assembly_spec = os.path.join(config["outputdir"], "06-designer_assemblies", "specs",
-                                     "designer_assembly_{comm}_spec.csv")
+                                     "designer_assembly_{comm}_spec.csv"),
         pickled_dict = os.path.join(config["outputdir"], "04-communities", "community_id_dicts",
                                      "{comm}.pickle")
     params:
@@ -68,6 +69,8 @@ rule create_assemblies:
                 peptide_dict[curr_string.split("/NCGR_PEP_ID=")[-1].split("_")[0]] = record.id
                 from_pep_dict[record.id] = curr_string.split("/NCGR_PEP_ID=")[-1].split("_")[0]
         
+        
+        os.makedirs(os.path.dirname(output.pickled_dict), exist_ok=True)
         with open(output.pickled_dict,'wb') as outfile:
             pickle.dump(peptide_dict,outfile)
                                             
@@ -83,7 +86,7 @@ rule create_assemblies:
         to_write=[]
         
         # we want to include 10% of the single copy OGs at random.
-        indices_OGs = random.choice(list(range(0,len(single_copy_OGs))), size=int(len(single_copy_OGs)*0.10), replace=False)
+        indices_OGs = np.random.choice(list(range(0,len(single_copy_OGs))), size=int(len(single_copy_OGs)*0.10), replace=False)
         selected_OGs = [single_copy_OGs[curr] for curr in indices_OGs]
         selected_peps = []
         [selected_peps.extend(list(orthogroups.loc[[curr in selected_OGs for curr in orthogroups.Orthogroup],:].\
@@ -132,8 +135,8 @@ rule create_assemblies:
                 # the number of contigs we wish to include from species-specific OGs
                 not_shared_num = int(total_items * 0.25)
             
-            random_num_shared = random.choice(list(range(0,total_items)), size=shared_num, replace=False)
-            random_num_not_shared = random.choice(list(set(list(range(0,total_items))).difference(set(random_num_shared))),\
+            random_num_shared = np.random.choice(list(range(0,total_items)), size=shared_num, replace=False)
+            random_num_not_shared = np.random.choice(list(set(list(range(0,total_items))).difference(set(random_num_shared))),\
                                                   size=not_shared_num, replace=False)
             selected_nucls.extend([from_pep_dict[shared_og_campeps[random_num_curr]] for \
                                   random_num_curr in random_num_shared])
@@ -142,9 +145,10 @@ rule create_assemblies:
             
             selected_nucls = list(set(selected_nucls))
             to_write.extend([curr for curr in record_list if curr.id in selected_nucls])
-            concordance.append(pd.DataFrame({"Contig"=[to_write_curr.id for to_write_curr in to_write],
-                                            "Organism"=[org_id]*len(to_write)}),ignore_index=True)
-            
+            concordance.append(pd.DataFrame({"Contig":[to_write_curr.id for to_write_curr in to_write],
+                                             "Organism":[org_id]*len(to_write)}),ignore_index=True)
+        
+        os.makedirs(os.path.dirname(output.mock_assembly), exist_ok=True)    
         with open(output.mock_assembly, 'w') as handle:
             SeqIO.write(to_write, handle, 'fasta')
             
