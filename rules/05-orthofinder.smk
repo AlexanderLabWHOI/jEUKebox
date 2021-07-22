@@ -37,7 +37,7 @@ rule orthofinder:
                                       "Orthogroups", "Orthogroups_SingleCopyOrthologues.txt")
       
     params:
-        outfold = os.path.join(config["outputdir"], "orthofinder", "orthofinder_{comm}"),
+        outfold = os.path.join(config["outputdir"], "05-orthofinder", "orthofinder_{comm}"),
         outfolder = config["outputdir"],
         directory_prot = os.path.join(config["outputdir"], "04-communities", "prot")
     conda:
