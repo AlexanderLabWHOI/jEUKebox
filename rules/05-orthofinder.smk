@@ -41,7 +41,7 @@ rule orthofinder:
         outfolder = config["outputdir"],
         directory_prot = os.path.join(config["outputdir"], "04-communities", "prot")
     conda:
-        os.path.join("envs","workflow-env.yaml")
+        os.path.join("..", "envs", "workflow-env.yaml")
     shell:
         '''
         rm -rf {params.outfold}
