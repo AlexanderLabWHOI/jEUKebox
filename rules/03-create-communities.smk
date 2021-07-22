@@ -64,7 +64,7 @@ rule create_communities:
                     organisms.extend(top_related)
                     high_relation.extend([1]*len(top_related))
                 
-            number_orgs-=len(top_related)
+            number_orgs-=len(organisms)
             high_relation.extend([0]*number_orgs)
             if number_orgs <= len(unrelated):
                 organisms.extend(np.random.choice(unrelated, number_orgs, replace=False))
