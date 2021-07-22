@@ -17,12 +17,16 @@ rule organize_folders:
     input:
         communities_file = os.path.join(config["outputdir"], "03-community_spec", "communities.csv")
     output:
-        community_files_prot = os.path.join(config["outputdir"], "04-communities", "prot", "{comm}_complete.csv"),
-        community_files_nucl = os.path.join(config["outputdir"], "04-communities", "nucl", "{comm}_complete.csv")
+        community_files_prot = os.path.join(config["outputdir"], "04-communities", "prot",
+                                            "{comm}", "{comm}_complete.csv"),
+        community_files_nucl = os.path.join(config["outputdir"], "04-communities", "nucl",
+                                            "{comm}", "{comm}_complete.csv")
     params:
         community = "{comm}",
-        directory_prot = os.path.join(config["outputdir"], "04-communities", "prot"),
-        directory_nucl = os.path.join(config["outputdir"], "04-communities", "nucl")
+        directory_prot = os.path.join(config["outputdir"], "04-communities",
+                                      "prot", "{comm}"),
+        directory_nucl = os.path.join(config["outputdir"], "04-communities",
+                                      "nucl", "{comm}")
     run:
         community_spec = pd.read_csv(input.communities_file)
         community_spec = community_spec[community_spec.Community == int(params.community)]

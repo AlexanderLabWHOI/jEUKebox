@@ -19,9 +19,9 @@ datestring = mydate.strftime("%b%d")
 rule create_assemblies:
     input:
         community_files_prot = os.path.join(config["outputdir"], "04-communities",
-                                            "prot", "{comm}_complete.csv"),
+                                            "prot", "{comm}", "{comm}_complete.csv"),
         community_files_nucl = os.path.join(config["outputdir"], "04-communities",
-                                            "nucl", "{comm}_complete.csv"),
+                                            "nucl", "{comm}", "{comm}_complete.csv"),
         communities_file = os.path.join(config["outputdir"], "03-community_spec",
                                         "communities.csv"),
         orthfinder_genct = os.path.join(config["outputdir"], "05-orthofinder", 
@@ -42,8 +42,8 @@ rule create_assemblies:
         pickled_dict = os.path.join(config["outputdir"], "04-communities", "community_id_dicts",
                                      "{comm}.pickle")
     params:
-        directory_prot = os.path.join(config["outputdir"], "04-communities", "prot"),
-        community_dir = os.path.join(config["outputdir"], "04-communities", "nucl")
+        directory_prot = os.path.join(config["outputdir"], "04-communities", "prot", "{comm}"),
+        community_dir = os.path.join(config["outputdir"], "04-communities", "nucl", "{comm}")
     run:
         community_spec = pd.read_csv(input.communities_file)
         files_inassembly = os.listdir(params.community_dir)

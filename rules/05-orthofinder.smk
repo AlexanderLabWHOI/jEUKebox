@@ -19,9 +19,9 @@ datestring = mydate.strftime("%b%d")
 rule orthofinder:
     input:
         community_files_prot = os.path.join(config["outputdir"], "04-communities",
-                                            "prot", "{comm}_complete.csv"),
+                                            "prot", "{comm}", "{comm}_complete.csv"),
         community_files_nucl = os.path.join(config["outputdir"], "04-communities",
-                                            "nucl", "{comm}_complete.csv")
+                                            "nucl", "{comm}", "{comm}_complete.csv")
     output:
         orthfinder_genct = os.path.join(config["outputdir"], "05-orthofinder", 
                                         "orthofinder_{comm}",
@@ -39,7 +39,7 @@ rule orthofinder:
     params:
         outfold = os.path.join(config["outputdir"], "05-orthofinder", "orthofinder_{comm}"),
         outfolder = config["outputdir"],
-        directory_prot = os.path.join(config["outputdir"], "04-communities", "prot")
+        directory_prot = os.path.join(config["outputdir"], "04-communities", "prot", "{comm}")
     conda:
         os.path.join("..", "envs", "workflow-env.yaml")
     shell:
