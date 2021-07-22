@@ -39,6 +39,8 @@ rule create_assemblies:
     output:
         mock_assembly = os.path.join(config["outputdir"], "06-designer_assemblies",
                                      "designer_assembly_{comm}.fasta"),
+        assembly_spec = os.path.join(config["outputdir"], "06-designer_assemblies", "specs",
+                                     "designer_assembly_{comm}_spec.csv")
         pickled_dict = os.path.join(config["outputdir"], "04-communities", "community_id_dicts",
                                      "{comm}.pickle")
     params:
@@ -47,7 +49,7 @@ rule create_assemblies:
     run:
         community_spec = pd.read_csv(input.communities_file)
         files_inassembly = os.listdir(params.community_dir)
-        community_spec = community_spec[community_spec.MMETSP_inds.isin(files_inassembly)] 
+        community_spec = community_spec[community_spec.File_Inds.isin(files_inassembly)] 
         
         # We need a way to translate between the peptide IDs in the OrthoFinder output 
         # and the nucleotide IDs we wish to use.
@@ -88,6 +90,9 @@ rule create_assemblies:
                                    drop("Orthogroup",axis=1).loc[ind])) for ind in len(selected_OGs)]
         selected_peps = [tester for tester in selected_peps if str(tester) != 'nan']
         selected_nucls = [from_pep_dict[curr_pep] for curr_pep in selected_peps]
+        
+        # save the info about what organism each contig came from
+        concordance = pd.DataFrame(columns=["Contig","Organism"])
         
         # for each member of the community we need to do something different
         for row_ind in range(len(community_spec.index)):
@@ -137,6 +142,10 @@ rule create_assemblies:
             
             selected_nucls = list(set(selected_nucls))
             to_write.extend([curr for curr in record_list if curr.id in selected_nucls])
+            concordance.append(pd.DataFrame({"Contig"=[to_write_curr.id for to_write_curr in to_write],
+                                            "Organism"=[org_id]*len(to_write)}),ignore_index=True)
             
         with open(output.mock_assembly, 'w') as handle:
             SeqIO.write(to_write, handle, 'fasta')
+            
+        concordance.to_csv(output.assembly_spec)
