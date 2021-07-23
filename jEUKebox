@@ -52,6 +52,7 @@ include: os.path.join("rules", "03-create-communities.smk")
 include: os.path.join("rules", "04-organize_communities.smk")
 include: os.path.join("rules", "05-orthofinder.smk")
 include: os.path.join("rules", "06-create-assemblies.smk")
+include: os.path.join("rules", "07-simulate_reads.smk")
 
 rule all:
     input:
@@ -64,8 +65,9 @@ rule all:
         assembly_output = expand(os.path.join(config["outputdir"],
                                               "06-designer_assemblies",
                                               "designer_assembly_{comm}.fasta"),
-                                              comm = communities)
-        
+                                              comm = communities),
+        raw_reads_1 = expand(os.path.join(config["outputdir"], "07-simulated_raw_reads",
+                                   "sim_raw_reads_{comm}_R1.fastq.gz"), comm = communities)
 rule rsubreads:
     output:
         "mocksubreads.txt"

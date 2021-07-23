@@ -163,7 +163,7 @@ rule create_assemblies:
             
             selected_nucls = list(set(selected_nucls))
             to_write.extend([curr for curr in record_list if any([nucl_sel in str(curr.id) for nucl_sel in selected_nucls])])
-            concordance.append(pd.DataFrame({"Contig":[to_write_curr.id for to_write_curr in to_write],
+            concordance = concordance.append(pd.DataFrame({"Contig":[to_write_curr.id for to_write_curr in to_write],
                                              "Organism":[org_id]*len(to_write),
                                              "Proportion": [percentage]*len(to_write)}),ignore_index=True)
         
