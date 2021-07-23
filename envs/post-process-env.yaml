@@ -1,0 +1,7 @@
+name: postprocess
+channels:
+    - bioconda
+    - conda-forge
+dependences:
+    - salmon
+    - eukulele

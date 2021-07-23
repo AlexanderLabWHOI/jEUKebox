@@ -67,14 +67,6 @@ rule all:
                                               "designer_assembly_{comm}.fasta"),
                                               comm = communities),
         raw_reads_1 = expand(os.path.join(config["outputdir"], "07-simulated_raw_reads",
-                                   "sim_raw_reads_{comm}_R1.fastq.gz"), comm = communities)
-rule rsubreads:
-    output:
-        "mocksubreads.txt"
-    conda:
-        os.path.join("envs","R-env.yaml")
-    shell:
-        '''
-        # run Rscript
-        touch mocksubreads.txt
-        '''
+                                   "sim_raw_reads_{comm}_R1.fastq.gz"), comm = communities),
+        salmon_output = expand(os.path.join(config["outputdir"], "08-salmon_mapping",\
+                                            "{comm}_quant", "quant.sf"), comm = communities)
