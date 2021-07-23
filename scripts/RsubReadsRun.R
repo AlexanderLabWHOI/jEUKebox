@@ -1,5 +1,8 @@
-install.packages("pacman", repos='http://cran.us.r-project.org', dependencies=TRUE)
-pacman::p_load(BiocManager,Biostrings,Rsubread)
+library(BiocManager)
+library(Biostrings)
+library(Rsubread)
+#install.packages("pacman", repos='http://cran.us.r-project.org', dependencies=TRUE)
+#pacman::p_load(BiocManager,Biostrings,Rsubread)
 
 args = commandArgs(trailingOnly=TRUE)
 
@@ -17,7 +20,7 @@ dir.create(output_raw_spec, showWarnings = FALSE, recursive=TRUE)
 scanned_info = Rsubread::scanFasta(
 
         # the file containing the transcript database
-        fasta_file,
+        assembly_file,
 
         # manipulating transcript names
         simplify.transcript.names = FALSE,

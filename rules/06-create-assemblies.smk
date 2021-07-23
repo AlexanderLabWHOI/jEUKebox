@@ -41,6 +41,8 @@ rule create_assemblies:
     output:
         mock_assembly = os.path.join(config["outputdir"], "06-designer_assemblies",
                                      "designer_assembly_{comm}.fasta"),
+        mock_assembly_prot = os.path.join(config["outputdir"], "06-designer_assemblies", "protein"
+                                     "designer_assembly_{comm}.pep.fasta"),
         assembly_spec = os.path.join(config["outputdir"], "06-designer_assemblies", "specs",
                                      "designer_assembly_{comm}_spec.csv"),
         pickled_dict = os.path.join(config["outputdir"], "04-communities", "community_id_dicts",
@@ -89,6 +91,7 @@ rule create_assemblies:
         gene_ct = gene_ct.replace(0, np.nan)
         gene_ct = gene_ct.dropna(how='any', axis=0)
         to_write=[]
+        to_write_prot=[]
         
         # we want to include 10% of the single copy OGs at random.
         indices_OGs = np.random.choice(list(range(0,len(single_copy_OGs))), size=int(len(single_copy_OGs)*0.10), replace=False)
@@ -108,6 +111,7 @@ rule create_assemblies:
             org_id = list(community_spec.File_Inds)[row_ind]
 
             record_list = list(SeqIO.parse(list(community_spec.Organism)[row_ind], "fasta"))
+            record_list_prot = list(SeqIO.parse(list(community_spec.Protein_Files)[row_ind], "fasta"))
             
             # the percentage of the assembly that we wish to be taken up by this organism 
             percentage = list(community_spec.Proportion)[row_ind]
@@ -120,7 +124,7 @@ rule create_assemblies:
                                          (~pd.isna(orthogroups.drop(["Orthogroup",org_id + ".pep"],\
                                                                      axis=1))).any(axis=1),:]
             shared_og_campeps = []
-            [shared_og_campeps.extend(curr.split(",")) for curr in \
+            [shared_og_campeps.extend([curr2 for curr2 curr.split(",") if curr2 not in shared_og_campeps]) for curr in \
                      list(shared_ogs[org_id + ".pep"]) if str(curr) != "nan"]
             
             # orthogroups that contain this organism as well as others
@@ -128,9 +132,9 @@ rule create_assemblies:
                                           pd.isna(orthogroups.drop(["Orthogroup",org_id + ".pep"],\
                                                                    axis=1)).all(axis=1),:]
             not_shared_og_campeps = []
-            [not_shared_og_campeps.extend(curr.split(",")) for curr in \
+            [not_shared_og_campeps.extend([curr2 for curr2 curr.split(",") if curr2 not in selected_peps]) for curr in \
                      list(not_shared_ogs[org_id + ".pep"]) if (str(curr) != "nan") & \
-                     (str(curr.split(",")) not in shared_og_campeps)]
+                     (str(curr) not in shared_og_campeps)]
                 
             # the total number of contigs in the transcriptome assembly for this organism
             total_items_transcriptome = len(record_list) 
@@ -172,14 +176,21 @@ rule create_assemblies:
                                   random_num_curr in random_num_not_shared])
             
             selected_nucls = list(set(selected_nucls))
-            to_write.extend([curr for curr in record_list if any([nucl_sel in str(curr.id) for nucl_sel in selected_nucls])])
+            selected_peps = [peptide_dict[curr] for curr in selected_nucls]
+            to_write.extend([curr for curr in record_list if \
+                             any([nucl_sel in str(curr.id) for nucl_sel in selected_nucls])])
+            to_write_prot.extend(list(set([curr for curr in record_list_prot if \
+                                      any([nucl_sel in str(curr.id) for nucl_sel in selected_peps])])))
             concordance = concordance.append(pd.DataFrame({"Contig":[to_write_curr.id for to_write_curr in to_write],
                                              "Organism":[org_id]*len(to_write),
                                              "Proportion": [percentage]*len(to_write)}),ignore_index=True)
         
         logfile.close()
-        os.makedirs(os.path.dirname(output.mock_assembly), exist_ok=True)    
+        os.makedirs(os.path.dirname(output.mock_assembly), exist_ok=True)   
+        os.makedirs(os.path.dirname(output.mock_assembly_prot), exist_ok=True)   
         with open(output.mock_assembly, 'w') as handle:
-            SeqIO.write(to_write, handle, 'fasta')
+            SeqIO.write(to_write, handle, 'fasta')   
+        with open(output.mock_assembly_prot, 'w') as handle:
+            SeqIO.write(to_write_prot, handle, 'fasta')
             
         concordance.to_csv(output.assembly_spec)

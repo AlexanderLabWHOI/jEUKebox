@@ -18,6 +18,7 @@ from snakemake.exceptions import print_exception, WorkflowError
 mydate = datetime.datetime.now()
 datestring = mydate.strftime("%b%d")
 transcriptomes = list(config["transcriptome_selections"])
+protein_files = list(config["protein_files"])
 
 # Generate community information using fastANI similarities and provided csv file.
 rule create_communities:
@@ -27,6 +28,7 @@ rule create_communities:
         communities_file = os.path.join(config["outputdir"], "03-community_spec", "communities.csv")
     params:
         transcriptomes = transcriptomes,
+        protein_files = protein_files,
         comm_df_loc = config["community_spec"]
     run:
         ani_file = pd.read_csv(input.tsv_file, sep = "\t",
@@ -79,8 +81,10 @@ rule create_communities:
             #prop_list = [n.strip() for n in prop_list]
             proportions.extend(prop_list)
             mmetsp_inds = [curr.split("/")[-1].split(".")[0] for curr in organisms]
+            protein_file_chosen = [list(params.protein_files)[list(params.transcriptomes).index(curr)] for curr in organisms]
             output_file = output_file.append(pd.DataFrame({"Community": community_curr,
                                              "Organism": organisms,
+                                             "Protein_Files": protein_file_chosen,
                                              "File_Inds": mmetsp_inds,
                                              "Proportion": proportions,
                                              "Related?": high_relation}))
