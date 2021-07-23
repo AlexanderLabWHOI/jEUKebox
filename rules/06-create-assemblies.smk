@@ -124,7 +124,7 @@ rule create_assemblies:
                                          (~pd.isna(orthogroups.drop(["Orthogroup",org_id + ".pep"],\
                                                                      axis=1))).any(axis=1),:]
             shared_og_campeps = []
-            [shared_og_campeps.extend([curr2 for curr2 curr.split(",") if curr2 not in shared_og_campeps]) for curr in \
+            [shared_og_campeps.extend([curr2 for curr2 in curr.split(",") if curr2 not in shared_og_campeps]) for curr in \
                      list(shared_ogs[org_id + ".pep"]) if str(curr) != "nan"]
             
             # orthogroups that contain this organism as well as others
@@ -132,7 +132,7 @@ rule create_assemblies:
                                           pd.isna(orthogroups.drop(["Orthogroup",org_id + ".pep"],\
                                                                    axis=1)).all(axis=1),:]
             not_shared_og_campeps = []
-            [not_shared_og_campeps.extend([curr2 for curr2 curr.split(",") if curr2 not in selected_peps]) for curr in \
+            [not_shared_og_campeps.extend([curr2 for curr2 in curr.split(",") if curr2 not in selected_peps]) for curr in \
                      list(not_shared_ogs[org_id + ".pep"]) if (str(curr) != "nan") & \
                      (str(curr) not in shared_og_campeps)]
                 
