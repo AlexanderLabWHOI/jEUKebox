@@ -17,6 +17,7 @@ from snakemake.exceptions import print_exception, WorkflowError
 
 mydate = datetime.datetime.now()
 datestring = mydate.strftime("%b%d")
+transcriptomes = list(config["transcriptome_selections"])
 
 # Generate community information using fastANI similarities and provided csv file.
 rule create_communities:
@@ -31,7 +32,7 @@ rule create_communities:
         ani_file = pd.read_csv(input.tsv_file, sep = "\t",
                                header=None,names = ["file1","file2","ani","XX","XXX"])
         ani_file = ani_file[ani_file.file1 != ani_file.file2]
-        unrelated = list(set(params.transcriptomes) - set(ani_file.file1) - set(ani_file.file2))
+        #unrelated = list(set(params.transcriptomes) - set(ani_file.file1) - set(ani_file.file2))
         ani_file = ani_file.sort_values(by = "ani")
         communities = pd.read_csv(params.comm_df_loc)
         output_file = pd.DataFrame(columns = ["Community", "Organism", "Proportion", "File_Inds", "Related?"])
@@ -68,6 +69,7 @@ rule create_communities:
                 
             number_orgs-=len(organisms)
             high_relation.extend([0]*number_orgs)
+            unrelated = list(set(params.transcriptomes) - set(organisms))
             if number_orgs <= len(unrelated):
                 organisms.extend(np.random.choice(unrelated, number_orgs, replace=False))
             else:
