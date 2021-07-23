@@ -10,10 +10,10 @@ output_raw_reads = args[3]
 output_raw_spec = args[4]
 
 raw_read_stub = strsplit(output_raw_reads,"\\.")[1]
-output_name = file.path(rawreads_dir,assembly_stub)
 assembly_spec = read.csv(assembly_spec)
 
-dir.create(output_name, showWarnings = FALSE, recursive=TRUE)
+dir.create(output_raw_reads, showWarnings = FALSE, recursive=TRUE)
+dir.create(output_raw_spec, showWarnings = FALSE, recursive=TRUE)
 scanned_info = Rsubread::scanFasta(
 
         # the file containing the transcript database
