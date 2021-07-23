@@ -16,6 +16,7 @@ from snakemake.exceptions import print_exception, WorkflowError
 
 mydate = datetime.datetime.now()
 datestring = mydate.strftime("%b%d")
+total_size_assembly = config["total_size"]
 
 rule create_assemblies:
     input:
@@ -47,7 +48,8 @@ rule create_assemblies:
     params:
         directory_prot = os.path.join(config["outputdir"], "04-communities", "prot", "{comm}"),
         community_dir = os.path.join(config["outputdir"], "04-communities", "nucl", "{comm}"),
-        outdir = config["outputdir"]
+        outdir = config["outputdir"],
+        total_size_metatranscriptome = total_size_assembly
     run:
         community_spec = pd.read_csv(input.communities_file)
         files_inassembly = [curr.split(".")[0] for curr in os.listdir(params.community_dir)]
@@ -131,7 +133,15 @@ rule create_assemblies:
                      (str(curr.split(",")) not in shared_og_campeps)]
                 
             # the total number of contigs in the transcriptome assembly for this organism
-            total_items = len(record_list) 
+            total_items_transcriptome = len(record_list) 
+            
+            # the desired size of the total metatranscriptome assembly times the percentage we want
+            # this one to represent
+            total_items = int(params.total_size_metatranscriptome * percentage)
+            
+            # this number can't exceed contigs available
+            if total_items > total_items_transcriptome:
+                total_items = total_items_transcriptome
             
             if related_check == 1:
                 # the number of contigs we wish to include from shared OGs

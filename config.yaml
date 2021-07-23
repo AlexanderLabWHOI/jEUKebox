@@ -23,7 +23,8 @@ protein_files:
     - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0027_clean.pep.fa
     - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0448_clean.pep.fa
 community_spec: files/default_communities.csv
-outputdir: ../mock-sim-22Jul
+outputdir: ../mock-sim-23Jul
+total_size: 250000
 community_configs:
     - 1
     - 2

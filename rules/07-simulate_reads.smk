@@ -28,7 +28,7 @@ rule rSubRead:
         raw_spec = os.path.join(config["outputdir"], "07-simulated_raw_reads",
                                    "spec", "raw_read_spec_{comm}.csv")
     params:
-        Rscript = os.path.join("..", "scripts", "RsubReadsRun.R")
+        Rscript = os.path.join("scripts", "RsubReadsRun.R")
     conda:
         os.path.join("..", "envs", "R-env.yaml")
     shell:
