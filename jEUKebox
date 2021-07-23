@@ -53,6 +53,7 @@ include: os.path.join("rules", "04-organize_communities.smk")
 include: os.path.join("rules", "05-orthofinder.smk")
 include: os.path.join("rules", "06-create-assemblies.smk")
 include: os.path.join("rules", "07-simulate_reads.smk")
+include: os.path.join("rules", "08-salmon_mapping.smk")
 
 rule all:
     input:
