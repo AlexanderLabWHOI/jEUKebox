@@ -4,6 +4,8 @@ channels:
     - r
     - conda-forge
 dependencies:
+    - r-base
+    - r-essentials
     - bioconductor-rsubread
     - r-biocmanager
     - bioconductor-biostrings
