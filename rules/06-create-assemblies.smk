@@ -41,7 +41,7 @@ rule create_assemblies:
     output:
         mock_assembly = os.path.join(config["outputdir"], "06-designer_assemblies",
                                      "designer_assembly_{comm}.fasta"),
-        mock_assembly_prot = os.path.join(config["outputdir"], "06-designer_assemblies", "protein"
+        mock_assembly_prot = os.path.join(config["outputdir"], "06-designer_assemblies", "protein",
                                      "designer_assembly_{comm}.pep.fasta"),
         assembly_spec = os.path.join(config["outputdir"], "06-designer_assemblies", "specs",
                                      "designer_assembly_{comm}_spec.csv"),
@@ -71,8 +71,10 @@ rule create_assemblies:
                 curr_string = record.description
                 peptide_ids.append(record.id)
                 nucle_ids_fromprot.append(curr_string.split("/NCGR_PEP_ID=")[-1].split("_")[0])
-                peptide_dict[curr_string.split("/NCGR_PEP_ID=")[-1].split("_")[0]] = record.id
-                from_pep_dict[record.id] = curr_string.split("/NCGR_PEP_ID=")[-1].split("_")[0]
+                if curr_string.split("/NCGR_PEP_ID=")[-1].split("_")[0] not in peptide_dict:
+                    peptide_dict[curr_string.split("/NCGR_PEP_ID=")[-1].split("_")[0]] = record.id
+                if record.id not in from_pep_dict:
+                    from_pep_dict[record.id] = curr_string.split("/NCGR_PEP_ID=")[-1].split("_")[0]
         
         
         os.makedirs(os.path.dirname(output.pickled_dict), exist_ok=True)
@@ -105,6 +107,8 @@ rule create_assemblies:
         
         # save the info about what organism each contig came from
         concordance = pd.DataFrame(columns=["Contig","Organism"])
+        org_ids = []
+        percentages = []
         
         # for each member of the community we need to do something different
         for row_ind in range(len(community_spec.index)):
@@ -124,17 +128,19 @@ rule create_assemblies:
                                          (~pd.isna(orthogroups.drop(["Orthogroup",org_id + ".pep"],\
                                                                      axis=1))).any(axis=1),:]
             shared_og_campeps = []
-            [shared_og_campeps.extend([curr2 for curr2 in curr.split(",") if curr2 not in shared_og_campeps]) for curr in \
+            [shared_og_campeps.extend([curr2 for curr2 in curr.split(",") if curr2 not in selected_peps]) for curr in \
                      list(shared_ogs[org_id + ".pep"]) if str(curr) != "nan"]
+            shared_og_campeps = list(set(shared_og_campeps))
             
             # orthogroups that contain this organism as well as others
             not_shared_ogs = orthogroups.loc[(~pd.isna(orthogroups[org_id + ".pep"])) & \
                                           pd.isna(orthogroups.drop(["Orthogroup",org_id + ".pep"],\
                                                                    axis=1)).all(axis=1),:]
             not_shared_og_campeps = []
-            [not_shared_og_campeps.extend([curr2 for curr2 in curr.split(",") if curr2 not in selected_peps]) for curr in \
+            [not_shared_og_campeps.extend([curr2 for curr2 in curr.split(",") if curr2 not in shared_og_campeps]) for curr in \
                      list(not_shared_ogs[org_id + ".pep"]) if (str(curr) != "nan") & \
                      (str(curr) not in shared_og_campeps)]
+            not_shared_og_campeps = list(set(not_shared_og_campeps))
                 
             # the total number of contigs in the transcriptome assembly for this organism
             total_items_transcriptome = len(record_list) 
@@ -177,20 +183,42 @@ rule create_assemblies:
             
             selected_nucls = list(set(selected_nucls))
             selected_peps = [peptide_dict[curr] for curr in selected_nucls]
-            to_write.extend([curr for curr in record_list if \
-                             any([nucl_sel in str(curr.id) for nucl_sel in selected_nucls])])
-            to_write_prot.extend(list(set([curr for curr in record_list_prot if \
-                                      any([nucl_sel in str(curr.id) for nucl_sel in selected_peps])])))
-            concordance = concordance.append(pd.DataFrame({"Contig":[to_write_curr.id for to_write_curr in to_write],
-                                             "Organism":[org_id]*len(to_write),
-                                             "Proportion": [percentage]*len(to_write)}),ignore_index=True)
+            #to_write.extend([curr for curr in record_list if \
+            #                 any([nucl_sel in str(curr.id) for nucl_sel in selected_nucls])])
+            check_1 = [curr for curr in record_list if (len((curr.id).split("|")) > 1) & 
+                       ("|".join((curr.id).split("|")[2:4]) in selected_nucls)]
+            to_write.extend(check_1)
+            check_1_prot = [curr for curr in record_list_prot if curr.id in selected_peps]
+            to_write_prot.extend(check_1_prot)
+            org_ids.extend([org_id]*len(to_write))
+            percentages.extend([percentage]*len(to_write))
+            #to_write_prot.extend([curr for curr in record_list_prot if \
+            #                      any([nucl_sel in str(curr.id) for nucl_sel in selected_peps])])\
         
         logfile.close()
         os.makedirs(os.path.dirname(output.mock_assembly), exist_ok=True)   
-        os.makedirs(os.path.dirname(output.mock_assembly_prot), exist_ok=True)   
+        os.makedirs(os.path.dirname(output.mock_assembly_prot), exist_ok=True) 
+        to_write_distinct = []
+        to_write_distinct_prot = []
+        unique_ids = []
+        org_ids_distinct = []
+        percentages_distinct = []
+        for curr,curr_prot,percentage,org_id in zip(to_write,to_write_prot,percentages,org_ids):
+            if curr.id not in unique_ids:
+                unique_ids.append(curr.id)
+                to_write_distinct.append(curr)
+                to_write_distinct_prot.append(curr_prot)
+                org_ids_distinct.append(org_id)
+                percentages_distinct.append(percentage)
+                
         with open(output.mock_assembly, 'w') as handle:
-            SeqIO.write(to_write, handle, 'fasta')   
+            SeqIO.write(to_write_distinct, handle, 'fasta')   
         with open(output.mock_assembly_prot, 'w') as handle:
-            SeqIO.write(to_write_prot, handle, 'fasta')
+            SeqIO.write(to_write_distinct_prot, handle, 'fasta')
+            
+        
+        concordance = concordance.append(pd.DataFrame({"Contig":unique_ids,
+                                                       "Organism":org_ids_distinct,
+                                                       "Proportion":percentages_distinct}),ignore_index=True)
             
         concordance.to_csv(output.assembly_spec)
