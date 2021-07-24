@@ -38,7 +38,7 @@ rule salmon_index:
         out = os.path.join(config["outputdir"], "logs", "salmon", "{comm}_index.out")
     shell:
         '''
-        salmon index -t {mock_assembly} -i {params.indexname} -k {params.kval} 2> {log.err} 1> {log.out}
+        salmon index -t {input.mock_assembly} -i {params.indexname} -k {params.kval} 2> {log.err} 1> {log.out}
         '''
 
 rule salmon_quant:
