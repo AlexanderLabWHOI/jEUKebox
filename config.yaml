@@ -10,6 +10,7 @@ transcriptome_selections:
     - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0147_clean.fasta
     - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0027_clean.fasta
     - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0448_clean.fasta
+    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0995_clean.fasta
 protein_files:
     - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0918_clean.pep.fa
     - /vortexfs1/omics/alexander/data/mmetsp/MMETSP1428_clean.pep.fa
@@ -22,9 +23,10 @@ protein_files:
     - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0147_clean.pep.fa
     - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0027_clean.pep.fa
     - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0448_clean.pep.fa
+    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0995_clean.pep.fa
 community_spec: files/default_communities.csv
-outputdir: ../mock-sim-24Jul-10k
-total_size: 10000
+outputdir: ../eukrhythmic_paper_trials/jEUKebox-Trial1-100k-eHux
+total_size: 100000
 community_configs:
     - 1
     - 2
