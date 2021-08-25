@@ -25,8 +25,8 @@ protein_files:
     - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0448_clean.pep.fa
     - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0995_clean.pep.fa
 community_spec: files/default_communities.csv
-outputdir: ../eukrhythmic_paper_trials/jEUKebox-Trial1-100k-eHux
-total_size: 100000
+outputdir: ../eukrhythmic_paper_trials/jEUKebox-Trial2-10k
+total_size: 10000
 community_configs:
     - 1
     - 2
