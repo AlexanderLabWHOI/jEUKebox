@@ -86,7 +86,7 @@ rule salmon_index_protein:
         libtype = "A",
         indexname = os.path.join(config["outputdir"], "10-salmon_mapping-prot",\
                      "{comm}_index"),
-        kval = 31
+        kval = 21
     conda:
         os.path.join("..", "envs", "post-process-env.yaml")
     log:

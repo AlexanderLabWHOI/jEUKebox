@@ -181,8 +181,11 @@ rule create_assemblies:
             selected_nucls.extend([from_pep_dict[not_shared_og_campeps[random_num_curr].strip()] for \
                                   random_num_curr in random_num_not_shared])
             
-            selected_nucls = list(set(selected_nucls))
-            selected_peps = [peptide_dict[curr] for curr in selected_nucls]
+            chosen_indices = list(np.random.choice(list(range(0,len(selected_nucls))), 
+                                                   params.total_size_metatranscriptome, replace=False))
+            selected_nucls = list(set([selected_nucls[curr] for curr in \
+                                       range(len(selected_nucls)) if curr in chosen_indices]))
+            selected_peps = set([peptide_dict[curr] for curr in selected_nucls])
             #to_write.extend([curr for curr in record_list if \
             #                 any([nucl_sel in str(curr.id) for nucl_sel in selected_nucls])])
             check_1 = [curr for curr in record_list if (len((curr.id).split("|")) > 1) & 
@@ -210,7 +213,7 @@ rule create_assemblies:
                 to_write_distinct_prot.append(curr_prot)
                 org_ids_distinct.append(org_id)
                 percentages_distinct.append(percentage)
-                
+                     
         with open(output.mock_assembly, 'w') as handle:
             SeqIO.write(to_write_distinct, handle, 'fasta')   
         with open(output.mock_assembly_prot, 'w') as handle:
