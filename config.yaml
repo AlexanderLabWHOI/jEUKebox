@@ -1,31 +1,31 @@
 transcriptome_selections:
-    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0918_clean.fasta
-    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP1428_clean.fasta
-    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0562_clean.fasta
-    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0604_clean.fasta
-    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0971_clean.fasta
-    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP1405_clean.fasta
-    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP1403_clean.fasta
-    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0994_clean.fasta
-    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0147_clean.fasta
-    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0027_clean.fasta
-    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0448_clean.fasta
-    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0995_clean.fasta
+    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0321_clean.fasta
+    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0369_clean.fasta
+    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0397_clean.fasta
+    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0469_clean.fasta
+    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0800_clean.fasta
+    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0884_clean.fasta
+    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0896_clean.fasta
+    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0975_clean.fasta
+    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP1117_clean.fasta
+    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP1338_clean.fasta
+    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP1349_clean.fasta
+    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP1411_clean.fasta
 protein_files:
-    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0918_clean.pep.fa
-    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP1428_clean.pep.fa
-    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0562_clean.pep.fa
-    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0604_clean.pep.fa
-    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0971_clean.pep.fa
-    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP1405_clean.pep.fa
-    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP1403_clean.pep.fa
-    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0994_clean.pep.fa
-    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0147_clean.pep.fa
-    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0027_clean.pep.fa
-    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0448_clean.pep.fa
-    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0995_clean.pep.fa
+    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0321_clean.pep.fa
+    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0369_clean.pep.fa
+    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0397_clean.pep.fa
+    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0469_clean.pep.fa
+    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0800_clean.pep.fa
+    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0884_clean.pep.fa
+    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0896_clean.pep.fa
+    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP0975_clean.pep.fa
+    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP1117_clean.pep.fa
+    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP1338_clean.pep.fa
+    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP1349_clean.pep.fa
+    - /vortexfs1/omics/alexander/data/mmetsp/MMETSP1411_clean.pep.fa
 community_spec: files/default_communities.csv
-outputdir: ../eukrhythmic_paper_trials_September21/jEUKebox-Trial2-100k
+outputdir: ../eukrhythmic_paper_trials_September21/jEUKebox-Trial2-CommB
 total_size: 100000
 community_configs:
     - 1

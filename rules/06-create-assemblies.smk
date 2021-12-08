@@ -94,6 +94,7 @@ rule create_assemblies:
         gene_ct = gene_ct.dropna(how='any', axis=0)
         to_write=[]
         to_write_prot=[]
+        percent_dict = dict()
         
         # we want to include 10% of the single copy OGs at random.
         indices_OGs = np.random.choice(list(range(0,len(single_copy_OGs))), size=int(len(single_copy_OGs)*0.10), replace=False)
@@ -110,12 +111,17 @@ rule create_assemblies:
         org_ids = []
         percentages = []
         
+        leftover_size = int(params.total_size_metatranscriptome)# - len(selected_peps)
+        all_record_list = list()
+        all_record_list_prot = list()
         # for each member of the community we need to do something different
         for row_ind in range(len(community_spec.index)):
             org_id = list(community_spec.File_Inds)[row_ind]
 
             record_list = list(SeqIO.parse(list(community_spec.Organism)[row_ind], "fasta"))
+            all_record_list.extend(record_list)
             record_list_prot = list(SeqIO.parse(list(community_spec.Protein_Files)[row_ind], "fasta"))
+            all_record_list_prot.extend(record_list_prot)
             
             # the percentage of the assembly that we wish to be taken up by this organism 
             percentage = list(community_spec.Proportion)[row_ind]
@@ -147,7 +153,7 @@ rule create_assemblies:
             
             # the desired size of the total metatranscriptome assembly times the percentage we want
             # this one to represent
-            total_items = int(params.total_size_metatranscriptome * percentage)
+            total_items = int(leftover_size * percentage)
             
             # this number can't exceed contigs available
             if total_items > total_items_transcriptome:
@@ -181,20 +187,26 @@ rule create_assemblies:
             selected_nucls.extend([from_pep_dict[not_shared_og_campeps[random_num_curr].strip()] for \
                                   random_num_curr in random_num_not_shared])
             
-            chosen_indices = list(np.random.choice(list(range(0,len(selected_nucls))), 
-                                                   params.total_size_metatranscriptome, replace=False))
-            selected_nucls = list(set([selected_nucls[curr] for curr in \
-                                       range(len(selected_nucls)) if curr in chosen_indices]))
-            selected_peps = set([peptide_dict[curr] for curr in selected_nucls])
-            #to_write.extend([curr for curr in record_list if \
-            #                 any([nucl_sel in str(curr.id) for nucl_sel in selected_nucls])])
-            check_1 = [curr for curr in record_list if (len((curr.id).split("|")) > 1) & 
-                       ("|".join((curr.id).split("|")[2:4]) in selected_nucls)]
-            to_write.extend(check_1)
-            check_1_prot = [curr for curr in record_list_prot if curr.id in selected_peps]
-            to_write_prot.extend(check_1_prot)
-            org_ids.extend([org_id]*len(to_write))
-            percentages.extend([percentage]*len(to_write))
+            if org_id not in percent_dict:
+                percent_dict[org_id] = percentage
+            
+        chosen_indices = list(np.random.choice(list(range(0,len(selected_nucls))), 
+                                               params.total_size_metatranscriptome, replace=False))
+        selected_nucls = list(set([selected_nucls[curr] for curr in \
+                                   range(len(selected_nucls)) if curr in chosen_indices]))
+        selected_peps = set([peptide_dict[curr] for curr in selected_nucls])
+        org_ids = [curr.split("|")[-2] if len(curr.split("|")) > 1 else curr.split("|")[0] for curr in selected_nucls]
+        percentages = [percent_dict[curr] if curr in percent_dict else np.random.random(1)[0] for curr in org_ids]
+        #to_write.extend([curr for curr in record_list if \
+        #                 any([nucl_sel in str(curr.id) for nucl_sel in selected_nucls])])
+        check_1 = [curr for curr in all_record_list if (len((curr.id).split("|")) > 1) & 
+                   ("|".join((curr.id).split("|")[2:4]) in selected_nucls)]
+        to_write.extend(check_1)
+        check_1_prot = [curr for curr in all_record_list_prot if curr.id in selected_peps]
+        to_write_prot.extend(check_1_prot)
+        
+        #org_ids.extend([org_id]*len(to_write))
+        #percentages.extend([percentage]*len(to_write))
             #to_write_prot.extend([curr for curr in record_list_prot if \
             #                      any([nucl_sel in str(curr.id) for nucl_sel in selected_peps])])\
         
@@ -204,10 +216,12 @@ rule create_assemblies:
         to_write_distinct = []
         to_write_distinct_prot = []
         unique_ids = []
+        unique_prots = []
         org_ids_distinct = []
         percentages_distinct = []
         for curr,curr_prot,percentage,org_id in zip(to_write,to_write_prot,percentages,org_ids):
-            if curr.id not in unique_ids:
+            if (curr.id not in unique_ids) & (curr_prot.id not in unique_prots):
+                unique_prots.append(curr_prot.id)
                 unique_ids.append(curr.id)
                 to_write_distinct.append(curr)
                 to_write_distinct_prot.append(curr_prot)

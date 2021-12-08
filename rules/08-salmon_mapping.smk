@@ -124,5 +124,5 @@ rule salmon_quant_protein:
         out = os.path.join(config["outputdir"], "logs", "salmon", "{comm}_quant_prot.out")
     shell:
         '''
-        salmon quant -i {params.indexname} -l {params.libtype} -1 {input.raw_reads_1} -2 {input.raw_reads_2} --validateMappings -o {params.outdir} 2> {log.err} 1> {log.out}
+        salmon quant -i {params.indexname} -l {params.libtype} -1 {input.raw_reads_1} -2 {input.raw_reads_2} --validateMappings -o {params.outdir} 2> {log.err} 1> {log.out} || true
         '''

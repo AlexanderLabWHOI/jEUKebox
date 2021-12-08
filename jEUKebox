@@ -58,11 +58,11 @@ include: os.path.join("rules", "08-salmon_mapping.smk")
 rule all:
     input:
         communities_file = os.path.join(config["outputdir"], "03-community_spec", "communities.csv"),
-        orthofinder_output = expand(os.path.join(config["outputdir"], "05-orthofinder",
-                                      "orthofinder_{comm}",
-                                      "Results_" + str(datestring),
-                                      "Orthogroups", "Orthogroups_SingleCopyOrthologues.txt"),
-                                      comm = communities),
+#        orthofinder_output = expand(os.path.join(config["outputdir"], "05-orthofinder",
+#                                      "orthofinder_{comm}",
+#                                      "Results_" + str(datestring),
+#                                      "Orthogroups", "Orthogroups_SingleCopyOrthologues.txt"),
+#                                      comm = communities),
         assembly_output = expand(os.path.join(config["outputdir"],
                                               "06-designer_assemblies",
                                               "designer_assembly_{comm}.fasta"),
