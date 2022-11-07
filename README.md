@@ -11,6 +11,25 @@ For this reason, we have developed this companion tool to the `eukrhythmic` micr
 
 ![the jEUKebox pipeline](files/jEUKebox-pipeline.png)
 
+## How to run the pipeline
+
+In order to run the pipeline, you need to have installed:
+
+- Snakemake > 7
+- mamba
+
+The remainder of the dependent packages required will be downloaded for you during execution.
+
+`jEUKebox` is written in [`Snakemake`](https://snakemake.readthedocs.io/en/stable/). The workflow can be executed just like an ordinary `Snakemake` workflow. The `Snakefile` is named `jEUKebox`, and lists all of the outputs expected from running the pipeline, calls upon methods written in the `rules` folder, which handles the execution of individual software tools needed to create the output files. 
+
+To run `jEUKebox`, one would execute:
+
+```
+snakemake --cores <number-of-cores> -s jEUKebox
+```
+
+This would run the pipeline *locally*. In order to execute the pipeline on a high-performance computing cluster, users can modify the file in `submit/snake-submit.sh`. This is designed for a `SLURM` HPC manager, but can be adapted to meet the needs of other systems. 
+
 ## The configuration file
 
 The configuration file allows the user to customize the pipeline to suit the particular collection of organisms of interest and their abundance in the communities.
@@ -33,6 +52,6 @@ There is a default csv file included in the `files` directory of the repository,
 - NumberHighSimilarity - a number (less than total NumberOrganisms for each community row) of the organisms within the community that should have high ANI similarity. The most similar organisms per ANI similarity will be chosen first. 
 - GroupsHighSimilarity - the number of _groups_ with high similarity that are expected to be found. This allows for the case in which you wish to have multiple high-similarity groups within your data, but want those two groups to be relatively unrelated to one another. The NumberHighSimilarity value should be divisible by the GroupsHighSimilarity value, else the total number of organism in the community will be reduced to accommodate even divisibility into the group size.
 
-#TODO - create a mode where users can just explicitly specify the output community file, such that the intermediate step is bypassed
+In the future, we intend to create a mode where users can just explicitly specify the output community file, such that the intermediate step is bypassed. If this feature is of interest to you, please submit an issue on the **Issues** [tab](https://github.com/AlexanderLabWHOI/jEUKebox/issues) describing your use case, and we'll get back to you as soon as we can!
 
 **Note**: if there is no preference for either or both of _NumberHighSimilarity_ or _GroupsHighSimilarity_, they can be set to -1 and will be ignored.
